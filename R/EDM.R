@@ -142,12 +142,22 @@ breakout = function(Z, min.size = 30, method = 'amoc', ...){
 		if(!is.null(retList$loc)&& length(retList$loc)>0){
 			v = retList$loc
 			v = c(0,v)
+      print (length(v))
 			for(j in 2:length(v)){
 				M = mean(Z$count[(v[j-1]+1):v[j]])
-				df2 = data.frame(Z$timestamp[v[j]], Z$timestamp[v[j]], -Inf, M)
+        M1 = mean(Z$count[ (v[j]+1):nrow(Z)])
+        mean_shift = round((M1 - M) * 100/M,2)
+        if(!multi){
+				  df2 = data.frame(Z$timestamp[v[j]], Z$timestamp[v[j]], -Inf, M1)
+        } else {
+          df2 = data.frame(Z$timestamp[v[j]], Z$timestamp[v[j]], -Inf, M)
+        }
 				names(df2) = c('x','xend','y','yend')
 				g = g + ggplot2::geom_segment(data=df2,ggplot2::aes(x=x,y=y,xend=xend,yend=yend,color='2'),linetype=2,size=1.2)
-				g = g + ggplot2::guides(color=FALSE)
+				if(!multi) {
+          g = g + ggplot2::geom_text(x=as.numeric(Z$timestamp[v[j]]), y=M1, label=paste0(Z$timestamp[v[j]], "\t", mean_shift, "%"), color="red", size=5, family=c("serif"))
+				}
+        g = g + ggplot2::guides(color=FALSE)
 			}
 		}
 		if(dateTime)
